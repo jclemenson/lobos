@@ -15,6 +15,7 @@
         lobos.utils)
   (:import (lobos.ast AlterRenameAction
                       ColumnDefinition
+                      CreateIndexStatement
                       DataTypeClause)
            (lobos.schema DataType
                          Schema)))
@@ -97,3 +98,20 @@
     (format "RENAME COLUMN %s TO %s"
             (as-identifier db-spec old-name)
             (as-identifier db-spec new-name))))
+
+(defmethod compile [:postgresql CreateIndexStatement]
+  [statement]
+  (let [{:keys [db-spec iname tname columns options]} statement
+        index-column #(if (keyword? %)
+                        (as-identifier db-spec %)
+                        (let [col (first %)
+                              options (set (rest %))]
+                          (apply join \space
+                            (as-identifier db-spec (first %))
+                            (map as-sql-keyword options))))]
+    (format "CREATE %sINDEX %s ON %s using %s %s"
+            (str (when ((set options) :unique) "UNIQUE "))
+            (as-identifier db-spec iname)
+            (as-identifier db-spec tname (:schema db-spec))
+            (str (if (contains? options :using) (:using options) "BTREE"))
+            (as-list (map index-column columns)))))
