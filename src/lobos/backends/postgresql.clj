@@ -113,14 +113,6 @@
                           (apply join \space
                             (as-identifier db-spec (first %))
                             (map as-sql-keyword options))))]
-
-    (println     (format "CREATE %sINDEX %s ON %s using %s %s"
-            (str (when (options-set :unique) "UNIQUE "))
-            (as-identifier db-spec iname)
-            (as-identifier db-spec tname (:schema db-spec))
-            (str (if (options-set :gist) "gist" "btree"))
-            (as-list (map index-column columns))))
-
     (format "CREATE %sINDEX %s ON %s using %s %s"
             (str (when (options-set :unique) "UNIQUE "))
             (as-identifier db-spec iname)

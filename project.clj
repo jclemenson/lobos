@@ -1,4 +1,4 @@
-(defproject jclemenson/lobos "1.0.1-SNAPSHOT"
+(defproject jclemenson/lobos "1.0.2-SNAPSHOT"
   :description
   "A library to create and manipulate SQL database schemas. Forked from http://github.com/siscia/lobos."
   :url "http://github.com/jclemenson/lobos"
