@@ -99,9 +99,13 @@
             (as-identifier db-spec old-name)
             (as-identifier db-spec new-name))))
 
+(schema/def-simple-typed-columns geometry)
+
+; options also accepts gist
 (defmethod compile [:postgresql CreateIndexStatement]
   [statement]
   (let [{:keys [db-spec iname tname columns options]} statement
+        options-set  (set options)
         index-column #(if (keyword? %)
                         (as-identifier db-spec %)
                         (let [col (first %)
@@ -109,9 +113,17 @@
                           (apply join \space
                             (as-identifier db-spec (first %))
                             (map as-sql-keyword options))))]
-    (format "CREATE %sINDEX %s ON %s using %s %s"
-            (str (when ((set options) :unique) "UNIQUE "))
+
+    (println     (format "CREATE %sINDEX %s ON %s using %s %s"
+            (str (when (options-set :unique) "UNIQUE "))
             (as-identifier db-spec iname)
             (as-identifier db-spec tname (:schema db-spec))
-            (str (if (contains? options :using) (:using options) "BTREE"))
+            (str (if (options-set :gist) "gist" "btree"))
+            (as-list (map index-column columns))))
+
+    (format "CREATE %sINDEX %s ON %s using %s %s"
+            (str (when (options-set :unique) "UNIQUE "))
+            (as-identifier db-spec iname)
+            (as-identifier db-spec tname (:schema db-spec))
+            (str (if (options-set :gist) "gist" "btree"))
             (as-list (map index-column columns)))))
